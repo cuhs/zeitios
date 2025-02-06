@@ -1,14 +1,13 @@
-import type { Config } from '@tailwindcss/vite'
+import type { Config } from "tailwindcss"
 
-export default {
-  darkMode: ["class"],
+const config: Config = {
+  darkMode: 'class',
   content: [
     "./pages/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
   ],
-  prefix: "",
   theme: {
     container: {
       center: true,
@@ -19,19 +18,17 @@ export default {
     },
     extend: {
       colors: {
+        background: "#F5F7FA",
+        foreground: "#FFFFFF",
         primary: {
           DEFAULT: "#4A90E2",
-          foreground: "#FFFFFF",
         },
         secondary: {
           DEFAULT: "#7CB342",
-          foreground: "#FFFFFF",
         },
         accent: {
           DEFAULT: "#FF7F50",
-          foreground: "#FFFFFF",
         },
-        background: "#F5F7FA",
       },
       animation: {
         "fade-in": "fadeIn 0.5s ease-in",
@@ -50,4 +47,6 @@ export default {
     },
   },
   plugins: [require("tailwindcss-animate")],
-} satisfies Config;
+}
+
+export default config;

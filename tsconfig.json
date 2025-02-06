@@ -9,6 +9,7 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": ["tailwindcss"]
-  }
+    "types": ["tailwindcss", "node"]
+  },
+
 }

@@ -1,6 +1,4 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+@import "tailwindcss";
 
 @layer base {
   :root {
@@ -107,10 +105,11 @@
 
 @layer base {
   * {
-    @apply border-border;
+    border: 2px solid var(--border);
   }
 
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--background);
+    color: var(--foreground);
   }
 }
