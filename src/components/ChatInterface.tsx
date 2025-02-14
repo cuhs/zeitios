@@ -1,9 +1,9 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import ReactMarkdown from "react-markdown"; 
 
 interface Message {
   content: string;
@@ -23,15 +23,32 @@ export const ChatInterface = ({ topic }: ChatInterfaceProps) => {
   ]);
   const [newMessage, setNewMessage] = useState("");
 
-  const handleSend = () => {
+  // handlesend updated to work with server.ts hopefully
+  const handleSend = async () => {
     if (!newMessage.trim()) return;
-
-    setMessages((prev) => [
-      ...prev,
-      { content: newMessage, isUser: true },
-      { content: `I'm processing your question about ${topic}...`, isUser: false },
-    ]);
-    setNewMessage("");
+  
+    // Add user message to chat
+    setMessages((prev) => [...prev, { content: newMessage, isUser: true }]);
+  
+    try {
+      // Send message to server
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message: newMessage }),
+      });
+  
+      const data = await response.json();
+  
+      // Add AI response to chat
+      setMessages((prev) => [...prev, { content: data.reply, isUser: false }]);
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
+  
+    setNewMessage(""); // Clear input field
   };
 
   return (
@@ -48,12 +65,18 @@ export const ChatInterface = ({ topic }: ChatInterfaceProps) => {
             >
               <div
                 className={`max-w-[80%] p-3 rounded-lg ${
-                  message.isUser
-                    ? 'bg-primary text-white'
-                    : 'bg-gray-100 text-gray-800'
+                  message.isUser 
+                    ? "bg-primary text-white" 
+                    : "bg-gray-100 text-gray-800"
                 }`}
               >
-                {message.content}
+                {/* Here we use ReactMarkdown and apply Tailwind classes for better integration */}
+                <ReactMarkdown className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl 
+                  prose-headings:font-semibold prose-headings:text-gray-800 
+                  prose-p:text-gray-700 prose-ul:list-disc prose-ul:pl-5 
+                  prose-strong:font-bold prose-blockquote:border-l-4 prose-blockquote:pl-4 prose-blockquote:italic">
+                  {message.content}
+                </ReactMarkdown>
               </div>
             </div>
           ))}
