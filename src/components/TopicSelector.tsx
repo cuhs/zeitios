@@ -8,10 +8,10 @@ interface TopicSelectorProps {
 }
 
 const suggestedTopics = [
-  "Ancient History",
-  "Quantum Physics",
-  "Environmental Science",
-  "World Literature",
+  "Social Media Marketing",
+  "Branding & Personal Identity Development",
+  "Community Marketing",
+  "E-commerce Basics",
 ];
 
 export const TopicSelector = ({ onTopicSelect }: TopicSelectorProps) => {

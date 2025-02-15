@@ -22,14 +22,18 @@ export const ChatInterface = ({ topic }: ChatInterfaceProps) => {
     },
   ]);
   const [newMessage, setNewMessage] = useState("");
+  const [isTyping, setIsTyping] = useState(false); // Track AI typing state
 
-  // handlesend updated to work with server.ts hopefully
   const handleSend = async () => {
     if (!newMessage.trim()) return;
-  
+
     // Add user message to chat
     setMessages((prev) => [...prev, { content: newMessage, isUser: true }]);
-  
+    setNewMessage("");
+
+    setIsTyping(true); // Show typing indicator
+    console.log("AI is typing..."); // Debugging
+
     try {
       // Send message to server
       const response = await fetch("/api/chat", {
@@ -39,16 +43,17 @@ export const ChatInterface = ({ topic }: ChatInterfaceProps) => {
         },
         body: JSON.stringify({ message: newMessage }),
       });
-  
+
       const data = await response.json();
-  
+
       // Add AI response to chat
       setMessages((prev) => [...prev, { content: data.reply, isUser: false }]);
     } catch (error) {
       console.error("Error sending message:", error);
+    } finally {
+      setIsTyping(false); // Hide typing indicator after response
+      console.log("AI response received."); // Debugging
     }
-  
-    setNewMessage(""); // Clear input field
   };
 
   return (
@@ -58,30 +63,34 @@ export const ChatInterface = ({ topic }: ChatInterfaceProps) => {
       </div>
       <ScrollArea className="h-[400px] p-4">
         <div className="space-y-4">
-          {messages.map((message, index) => (
+              {messages.map((message, index) => (
             <div
               key={index}
-              className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}
             >
               <div
                 className={`max-w-[80%] p-3 rounded-lg ${
-                  message.isUser 
-                    ? "bg-primary text-white" 
-                    : "bg-gray-100 text-gray-800"
+                  message.isUser
+                    ? "bg-blue-500 text-white text-right" // ✅ Align user messages right
+                    : "bg-gray-100 text-gray-800 text-left"
                 }`}
               >
-                {/* Here we use ReactMarkdown and apply Tailwind classes for better integration */}
-                <ReactMarkdown className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl 
-                  prose-headings:font-semibold prose-headings:text-gray-800 
-                  prose-p:text-gray-700 prose-ul:list-disc prose-ul:pl-5 
-                  prose-strong:font-bold prose-blockquote:border-l-4 prose-blockquote:pl-4 prose-blockquote:italic">
-                  {message.content}
-                </ReactMarkdown>
+                <ReactMarkdown>{message.content}</ReactMarkdown>
               </div>
             </div>
           ))}
+
+          {/* Typing Indicator */}
+          {isTyping && (
+            <div className="flex justify-start">
+              <div className="p-3 rounded-lg bg-gray-100 text-gray-800 animate-pulse">
+                ZeitiosAI is typing...
+              </div>
+            </div>
+          )}
         </div>
       </ScrollArea>
+
       <div className="p-4 border-t flex gap-2">
         <Input
           placeholder="Ask a question..."
@@ -89,8 +98,12 @@ export const ChatInterface = ({ topic }: ChatInterfaceProps) => {
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && handleSend()}
         />
-        <Button onClick={handleSend} className="bg-primary hover:bg-primary/90">
-          Send
+        <Button 
+          onClick={handleSend} 
+          className="bg-primary hover:bg-primary/90"
+          disabled={isTyping} // Disable button while AI is responding
+        >
+          {isTyping ? "..." : "Send"}
         </Button>
       </div>
     </Card>
