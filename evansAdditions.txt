@@ -26,3 +26,4 @@ Aidan's Addendum:
 - tried to make headers appear (###, ##, #) with markdown but only got bold and italics to work
 - tried to make the messages jump to the most recent sent but right now we have to manually scroll
 - installed some packages to try to get these to work via react, so if bugs encountered that may be why.
+    - added "@tailwindcss/typography" to config for bolding in chat. <- may have to "npm install" this!
