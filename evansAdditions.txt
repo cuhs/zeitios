@@ -27,3 +27,9 @@ Aidan's Addendum:
 - tried to make the messages jump to the most recent sent but right now we have to manually scroll
 - installed some packages to try to get these to work via react, so if bugs encountered that may be why.
     - added "@tailwindcss/typography" to config for bolding in chat. <- may have to "npm install" this!
+
+
+IMPORTANT:
+Anshul here! :/
+--> I created a command called "npm run both" so that you don't need to call both the server and vite at the same time
+Should make life easier LOL
