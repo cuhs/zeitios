@@ -5,6 +5,7 @@ import { WebsiteSuggestions } from '@/components/WebsiteSuggestions';
 
 const Index = () => {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  const [currentConversation, setCurrentConversation] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen bg-background">
@@ -23,8 +24,8 @@ const Index = () => {
 
         {selectedTopic && (
           <div className="space-y-8 animate-slide-up">
-            <ChatInterface topic={selectedTopic} />
-            <WebsiteSuggestions topic={selectedTopic} />
+            <ChatInterface topic={selectedTopic} onConversationChange={setCurrentConversation}/>
+            <WebsiteSuggestions topic={selectedTopic} conversation={currentConversation}/>
           </div>
         )}
       </div>

@@ -12,9 +12,10 @@ interface Message {
 
 interface ChatInterfaceProps {
   topic: string;
+  onConversationChange(conversation: string): void;
 }
 
-export const ChatInterface = ({ topic }: ChatInterfaceProps) => {
+export const ChatInterface = ({ topic, onConversationChange }: ChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       content: `Let's explore ${topic}! What would you like to know?`,
@@ -28,6 +29,8 @@ export const ChatInterface = ({ topic }: ChatInterfaceProps) => {
     if (!newMessage.trim()) return;
 
     // Add user message to chat
+    // Add user message to chat
+    // We clone the prev state to avoid direct mutation
     setMessages((prev) => [...prev, { content: newMessage, isUser: true }]);
     setNewMessage("");
 
@@ -48,6 +51,7 @@ export const ChatInterface = ({ topic }: ChatInterfaceProps) => {
 
       // Add AI response to chat
       setMessages((prev) => [...prev, { content: data.reply, isUser: false }]);
+      onConversationChange(data.reply);
     } catch (error) {
       console.error("Error sending message:", error);
     } finally {
@@ -95,7 +99,10 @@ export const ChatInterface = ({ topic }: ChatInterfaceProps) => {
         <Input
           placeholder="Ask a question..."
           value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
+          onChange={(e) => {
+            setNewMessage(e.target.value);
+            onConversationChange(e.target.value);
+          }}
           onKeyPress={(e) => e.key === 'Enter' && handleSend()}
         />
         <Button 
