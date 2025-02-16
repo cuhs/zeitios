@@ -1,0 +1,35 @@
+Okay here's what I did(chatgpt did):
+- Created the server folder with server.ts as what we run to communicate with backend 
+- Updated the ChatInterface.tsx to be compatible and send files between the backend and front end.
+- Updated the tsconfig.json, package.json, etc to add the server.ts support.
+- Added Chat.tsx - another chat component, separate from your ChatInterface.tsx. It expects a backend server running at http://localhost:3001/chat to handle messages.
+- To get it working, in the server folder run in a terminal
+"npm run start" 
+- Then in a seperate terminal, within the Zeitios folder:
+"npm run dev" 
+- On the website, say any topic for now, it doesnt do anything.
+- Once that chat opens at the bottom you can talk with gpt.
+
+Going forward:
+- Rn it runs kinda slow, like when you press enter it doesn't appear that anything is happening, but it DID send the prompt and is sending data/fetching a response. 
+- Maybe we can update it to be more interactive and close the chat menu until the response is received.
+- the initial prompt to the AI is just whatever the user sends it, its not marketing oriented or anything so we could add functionality for that
+- Maybe a way to restrict the ai to only AI topics.
+- Make the website prettier lol 
+
+Bottom line is we now have a slower running chat gpt, but its through our website :D
+
+Aidan's Addendum:
+- added AI is typing... to ChatInterface.tsv
+- also, make sure API key is up to date.
+- made it so our messages appear when chatting with AI
+- tried to make headers appear (###, ##, #) with markdown but only got bold and italics to work
+- tried to make the messages jump to the most recent sent but right now we have to manually scroll
+- installed some packages to try to get these to work via react, so if bugs encountered that may be why.
+    - added "@tailwindcss/typography" to config for bolding in chat. <- may have to "npm install" this!
+
+
+IMPORTANT:
+Anshul here! :/
+--> I created a command called "npm run both" so that you don't need to call both the server and vite at the same time
+Should make life easier LOL
