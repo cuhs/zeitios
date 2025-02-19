@@ -35,7 +35,7 @@ export const TopicSelector = ({ onTopicSelect }: TopicSelectorProps) => {
           {/* Button to select the custom topic */}
           <Button 
             onClick={() => customTopic && onTopicSelect(customTopic)}
-            className="bg-accent hover:bg-accent/90"
+            className="bg-accent hover:bg-accent/90 cursor-pointer"
           >
             Explore
           </Button>
@@ -50,7 +50,7 @@ export const TopicSelector = ({ onTopicSelect }: TopicSelectorProps) => {
                 key={topic}
                 variant="outline"
                 onClick={() => onTopicSelect(topic)}
-                className="hover:bg-primary/10"
+                className="hover:bg-primary/10 cursor-pointer"
               >
                 {topic}
               </Button>
