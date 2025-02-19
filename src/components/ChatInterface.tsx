@@ -1,9 +1,9 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import ReactMarkdown from "react-markdown"; 
 
 interface Message {
   content: string;
@@ -12,9 +12,10 @@ interface Message {
 
 interface ChatInterfaceProps {
   topic: string;
+  onConversationChange(conversation: string): void;
 }
 
-export const ChatInterface = ({ topic }: ChatInterfaceProps) => {
+export const ChatInterface = ({ topic, onConversationChange }: ChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       content: `Let's explore ${topic}! What would you like to know?`,
@@ -22,16 +23,41 @@ export const ChatInterface = ({ topic }: ChatInterfaceProps) => {
     },
   ]);
   const [newMessage, setNewMessage] = useState("");
+  const [isTyping, setIsTyping] = useState(false); // Track AI typing state
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!newMessage.trim()) return;
 
-    setMessages((prev) => [
-      ...prev,
-      { content: newMessage, isUser: true },
-      { content: `I'm processing your question about ${topic}...`, isUser: false },
-    ]);
+    // Add user message to chat
+    // Add user message to chat
+    // We clone the prev state to avoid direct mutation
+    setMessages((prev) => [...prev, { content: newMessage, isUser: true }]);
     setNewMessage("");
+
+    setIsTyping(true); // Show typing indicator
+    console.log("AI is typing..."); // Debugging
+
+    try {
+      // Send message to server
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message: newMessage }),
+      });
+
+      const data = await response.json();
+
+      // Add AI response to chat
+      setMessages((prev) => [...prev, { content: data.reply, isUser: false }]);
+      onConversationChange(data.reply);
+    } catch (error) {
+      console.error("Error sending message:", error);
+    } finally {
+      setIsTyping(false); // Hide typing indicator after response
+      console.log("AI response received."); // Debugging
+    }
   };
 
   return (
@@ -41,33 +67,50 @@ export const ChatInterface = ({ topic }: ChatInterfaceProps) => {
       </div>
       <ScrollArea className="h-[400px] p-4">
         <div className="space-y-4">
-          {messages.map((message, index) => (
+              {messages.map((message, index) => (
             <div
               key={index}
-              className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}
             >
               <div
                 className={`max-w-[80%] p-3 rounded-lg ${
                   message.isUser
-                    ? 'bg-primary text-white'
-                    : 'bg-gray-100 text-gray-800'
+                    ? "bg-blue-500 text-white text-right" // ✅ Align user messages right
+                    : "bg-gray-100 text-gray-800 text-left"
                 }`}
               >
-                {message.content}
+                <ReactMarkdown>{message.content}</ReactMarkdown>
               </div>
             </div>
           ))}
+
+          {/* Typing Indicator */}
+          {isTyping && (
+            <div className="flex justify-start">
+              <div className="p-3 rounded-lg bg-gray-100 text-gray-800 animate-pulse">
+                ZeitiosAI is typing...
+              </div>
+            </div>
+          )}
         </div>
       </ScrollArea>
+
       <div className="p-4 border-t flex gap-2">
         <Input
           placeholder="Ask a question..."
           value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
+          onChange={(e) => {
+            setNewMessage(e.target.value);
+            onConversationChange(e.target.value);
+          }}
           onKeyPress={(e) => e.key === 'Enter' && handleSend()}
         />
-        <Button onClick={handleSend} className="bg-primary hover:bg-primary/90">
-          Send
+        <Button 
+          onClick={handleSend} 
+          className="bg-primary hover:bg-primary/90"
+          disabled={isTyping} // Disable button while AI is responding
+        >
+          {isTyping ? "..." : "Send"}
         </Button>
       </div>
     </Card>

@@ -3,15 +3,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 
+/**
+ * TopicSelector component props
+ */
 interface TopicSelectorProps {
-  onTopicSelect: (topic: string) => void;
+  onTopicSelect(topic: string): void;
 }
 
 const suggestedTopics = [
-  "Ancient History",
-  "Quantum Physics",
-  "Environmental Science",
-  "World Literature",
+  "Social Media Marketing",
+  "Branding & Personal Identity Development",
+  "Community Marketing",
+  "E-commerce Basics",
 ];
 
 export const TopicSelector = ({ onTopicSelect }: TopicSelectorProps) => {
@@ -22,12 +25,14 @@ export const TopicSelector = ({ onTopicSelect }: TopicSelectorProps) => {
       <h2 className="text-2xl font-bold text-gray-800 mb-4">Choose Your Learning Journey</h2>
       <div className="space-y-4">
         <div className="flex gap-2">
+          {/* Input to enter a custom topic */}
           <Input
             placeholder="Enter any topic..."
             value={customTopic}
             onChange={(e) => setCustomTopic(e.target.value)}
             className="flex-1"
           />
+          {/* Button to select the custom topic */}
           <Button 
             onClick={() => customTopic && onTopicSelect(customTopic)}
             className="bg-accent hover:bg-accent/90"
@@ -36,7 +41,9 @@ export const TopicSelector = ({ onTopicSelect }: TopicSelectorProps) => {
           </Button>
         </div>
         <div className="pt-4">
+          {/* Header for the suggested topics */}
           <p className="text-sm text-gray-600 mb-2">Popular Topics:</p>
+          {/* List of suggested topics */}
           <div className="flex flex-wrap gap-2">
             {suggestedTopics.map((topic) => (
               <Button
@@ -54,3 +61,4 @@ export const TopicSelector = ({ onTopicSelect }: TopicSelectorProps) => {
     </Card>
   );
 };
+
