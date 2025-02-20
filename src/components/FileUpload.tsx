@@ -18,36 +18,19 @@ const FileUpload = ({ onUploadComplete }: FileUploadProps) => {
   };
 
   const handleUpload = async () => {
-    const fileToBase64 = (file: File): Promise<string> => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-    };
-
     if (!file) return;
     setIsUploading(true);
-
+  
     const formData = new FormData();
     formData.append("file", file);
-
-    const base64String = await fileToBase64(file);
-
     try {
-      const response = await fetch("/api/upload", {
+      const response = await fetch("http://localhost:3001/upload", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ file: base64String }),
+        body: formData,
       });
-
+      console.log("Upload successful");
       if (!response.ok) throw new Error("File upload failed.");
-      console.log(response);
-      console.log("response above");
-
+  
       const data = await response.json();
       onUploadComplete(data.reply || "No response from AI assistant.");
     } catch (error) {
@@ -56,14 +39,14 @@ const FileUpload = ({ onUploadComplete }: FileUploadProps) => {
     } finally {
       setIsUploading(false);
     }
-  };
+  };  
 
   return (
     <div>
       <input
         type="file"
         onChange={handleFileChange}
-        accept=".txt, .pdf, .docx, .jpg, .png"
+        accept=".txt, .pdf, .docx, .jpg, .png, .jpeg"
       />
       <Button onClick={handleUpload} disabled={isUploading || !file}>
         {isUploading ? "Uploading..." : "Upload file"}
