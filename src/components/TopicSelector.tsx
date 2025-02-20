@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { FileUpload } from "@/components/ui/FileUpload";
+import { FileUpload } from "@/components/FileUpload.tsx"
 
 /**
  * TopicSelector component props
@@ -27,11 +27,10 @@ export const TopicSelector = ({ onTopicSelect }: TopicSelectorProps) => {
   };
 
   useEffect(() => {
-    // If fileResponse is available, we can trigger a new action
     if (fileResponse) {
-      onTopicSelect(fileResponse); // Assuming this starts the topic based on the file content
+      onTopicSelect(fileResponse);
     }
-  }, [fileResponse, onTopicSelect]);  // Re-run when fileResponse changes
+  }, [fileResponse, onTopicSelect]);
 
   return (
     <Card className="p-6 w-full max-w-2xl mx-auto bg-white shadow-lg animate-fade-in">

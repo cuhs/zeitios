@@ -18,16 +18,30 @@ const FileUpload = ({ onUploadComplete }: FileUploadProps) => {
   };
 
   const handleUpload = async () => {
+    const fileToBase64 = (file: File): Promise<string> => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    };
+
     if (!file) return;
     setIsUploading(true);
 
     const formData = new FormData();
     formData.append("file", file);
 
+    const base64String = await fileToBase64(file);
+
     try {
-      const response = await fetch("/upload-file", {
+      const response = await fetch("/api/upload", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ file: base64String }),
       });
 
       if (!response.ok) throw new Error("File upload failed.");
