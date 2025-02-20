@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { FileUpload } from "@/components/ui/FileUpload";
 
 /**
  * TopicSelector component props
@@ -19,10 +20,22 @@ const suggestedTopics = [
 
 export const TopicSelector = ({ onTopicSelect }: TopicSelectorProps) => {
   const [customTopic, setCustomTopic] = useState("");
+  const [fileResponse, setFileResponse] = useState<string | null>(null);
+
+  const handleUploadComplete = (response: string) => {
+    setFileResponse(response);
+  };
+
+  useEffect(() => {
+    // If fileResponse is available, we can trigger a new action
+    if (fileResponse) {
+      onTopicSelect(fileResponse); // Assuming this starts the topic based on the file content
+    }
+  }, [fileResponse, onTopicSelect]);  // Re-run when fileResponse changes
 
   return (
     <Card className="p-6 w-full max-w-2xl mx-auto bg-white shadow-lg animate-fade-in">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Choose Your Learning Journey</h2>
+      <h2 className="text-2xl font-bold text-gray-800 mb-4">What do you want to learn about <i>marketing</i> today?</h2>
       <div className="space-y-4">
         <div className="flex gap-2">
           {/* Input to enter a custom topic */}
@@ -40,6 +53,9 @@ export const TopicSelector = ({ onTopicSelect }: TopicSelectorProps) => {
             Explore
           </Button>
         </div>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">...or upload a marketing file to get instant feedback</h2>
+          <FileUpload onUploadComplete={handleUploadComplete} />
+
         <div className="pt-4">
           {/* Header for the suggested topics */}
           <p className="text-sm text-gray-600 mb-2">Popular Topics:</p>
