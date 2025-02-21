@@ -28,7 +28,7 @@ export const TopicSelector = ({ onTopicSelect }: TopicSelectorProps) => {
 
   useEffect(() => {
     if (fileResponse) {
-      onTopicSelect(fileResponse);
+      onTopicSelect(fileResponse); 
     }
   }, [fileResponse, onTopicSelect]);
 
@@ -37,14 +37,12 @@ export const TopicSelector = ({ onTopicSelect }: TopicSelectorProps) => {
       <h2 className="text-2xl font-bold text-gray-800 mb-4">What do you want to learn about <i>marketing</i> today?</h2>
       <div className="space-y-4">
         <div className="flex gap-2">
-          {/* Input to enter a custom topic */}
           <Input
             placeholder="Enter any topic..."
             value={customTopic}
             onChange={(e) => setCustomTopic(e.target.value)}
             className="flex-1"
           />
-          {/* Button to select the custom topic */}
           <Button 
             onClick={() => customTopic && onTopicSelect(customTopic)}
             className="bg-accent hover:bg-accent/90"
@@ -52,13 +50,12 @@ export const TopicSelector = ({ onTopicSelect }: TopicSelectorProps) => {
             Explore
           </Button>
         </div>
+
         <h2 className="text-2xl font-bold text-gray-800 mb-4">...or upload a marketing file to get instant feedback</h2>
-          <FileUpload onUploadComplete={handleUploadComplete} />
+        <FileUpload onUploadComplete={handleUploadComplete} />
 
         <div className="pt-4">
-          {/* Header for the suggested topics */}
           <p className="text-sm text-gray-600 mb-2">Popular Topics:</p>
-          {/* List of suggested topics */}
           <div className="flex flex-wrap gap-2">
             {suggestedTopics.map((topic) => (
               <Button
@@ -76,4 +73,3 @@ export const TopicSelector = ({ onTopicSelect }: TopicSelectorProps) => {
     </Card>
   );
 };
-

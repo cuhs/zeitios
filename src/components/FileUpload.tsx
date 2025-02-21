@@ -28,7 +28,6 @@ const FileUpload = ({ onUploadComplete }: FileUploadProps) => {
         method: "POST",
         body: formData,
       });
-      console.log("Upload successful");
       if (!response.ok) throw new Error("File upload failed.");
   
       const data = await response.json();
