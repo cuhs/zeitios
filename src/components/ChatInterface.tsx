@@ -20,7 +20,7 @@ export const ChatInterface = ({ topic, isFileUpload = false, onConversationChang
   const [messages, setMessages] = useState<Message[]>([
     {
       content: isFileUpload
-        ? "{topic}"
+        ? `${topic}`
         : `Let's explore ${topic}! What would you like to know?`,
       isUser: false,
     },
