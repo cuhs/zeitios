@@ -30,8 +30,17 @@ export const TopicSelector = ({ onTopicSelect }: TopicSelectorProps) => {
             placeholder="Enter any topic..."
             value={customTopic}
             onChange={(e) => setCustomTopic(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault(); // Prevents unintended new lines
+                if (customTopic.trim()) {
+                  onTopicSelect(customTopic.trim()); // Call onTopicSelect when Enter is pressed
+                }
+              }
+            }}
             className="flex-1"
           />
+
           {/* Button to select the custom topic */}
           <Button 
             onClick={() => customTopic && onTopicSelect(customTopic)}

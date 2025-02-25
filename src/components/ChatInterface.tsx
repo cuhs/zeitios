@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, fowardRef } from 'react';
+import { useState, useRef, useEffect, forwardRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -80,11 +80,29 @@ export const ChatInterface = ({ topic, onConversationChange }: ChatInterfaceProp
               <div
                 className={`max-w-[80%] p-3 rounded-lg ${
                   message.isUser
-                    ? "bg-blue-500 text-white text-right" // ✅ Align user messages right
+                    ? "bg-blue-300 text-white text-right" // ✅ Align user messages right
                     : "bg-gray-100 text-gray-800 text-left"
                 }`}
               >
-                <ReactMarkdown>{message.content}</ReactMarkdown>
+                <ReactMarkdown
+                  components={{
+                    h1: ({ node, children, ...props }) => (
+                      <h1 className="text-3xl font-bold mt-4 mb-2" {...props}>{children}</h1>
+                    ),
+                    h2: ({ node, children, ...props }) => (
+                      <h2 className="text-2xl font-semibold mt-3 mb-1" {...props}>{children}</h2>
+                    ),
+                    h3: ({ node, children, ...props }) => (
+                      <h3 className="text-xl font-medium mt-2 mb-1" {...props}>{children}</h3>
+                    ),
+                    p: ({ node, children, ...props }) => (
+                      <p className="text-gray-800" {...props}>{children}</p>
+                    ),
+                  }}
+                >
+                  {message.content}
+                </ReactMarkdown>
+
               </div>
             </div>
           ))}
