@@ -76,7 +76,7 @@ app.post("/chat", async (req, res) => {
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [{ role: "user", content: userMessage }],
+      messages: [{ role: "user", content: "You are a marketing AI tutor receiving requests from student users. Above all else keep the conversation restrained marketing topics, here is the user prompt: " + userMessage }],
     });
 
     const reply = completion.choices[0]?.message?.content || "No response.";
