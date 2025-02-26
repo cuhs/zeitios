@@ -76,7 +76,7 @@ app.post("/chat", async (req, res) => {
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [{ role: "user", content: "You are a marketing AI tutor receiving requests from student users. Above all else keep the conversation restrained marketing topics, here is the user prompt: " + userMessage }],
+      messages: [{ role: "user", content: "You are a marketing AI tutor receiving requests from student users. Assume they are new to marketing and will need help learning the basics of the proposed topic. Above all else keep the conversation restrained marketing topics, here is the user prompt: " + userMessage }],
     });
 
     const reply = completion.choices[0]?.message?.content || "No response.";
@@ -96,7 +96,7 @@ app.post("/exa", async (req, res) => {
   const currentConversation = req.body.conversation;
 
   const result = await exa.searchAndContents(
-    `find cool articles about topics related to ${linkRequest}. Make sure the articles are related to the following conversation: ${currentConversation}`, {
+    `find informational articles about topics related to ${linkRequest}. Make sure the articles are related to the following conversation: ${currentConversation}`, {
       type: "auto",
       text: {
         maxCharacters: 1000

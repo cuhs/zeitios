@@ -12,10 +12,16 @@ interface TopicSelectorProps {
 }
 
 const suggestedTopics = [
-  "Social Media Marketing",
-  "Branding & Personal Identity Development",
-  "Community Marketing",
-  "E-commerce Basics",
+  "Marketing Basics",
+  "Market Research & Consumer Behavior",
+  "Branding & Positioning",
+  "Marketing Channels & Strategies",
+  "Content Marketing",
+  "Social Media & Community Engagement",
+  "Paid Advertising & Performance Marketing",
+  "Customer Retention",
+  "Data Analytics",
+  "Emerging Trends",
 ];
 
 export const TopicSelector = ({ onTopicSelect }: TopicSelectorProps) => {
@@ -53,10 +59,11 @@ export const TopicSelector = ({ onTopicSelect }: TopicSelectorProps) => {
         </div>
 
         <h2 className="text-2xl font-bold text-gray-800 mb-4">...or upload a marketing file to get instant feedback</h2>
+        <p>Accepted files: .jpg, .png, .jpeg</p>
         <FileUpload onUploadComplete={handleUploadComplete} />
 
         <div className="pt-4">
-          <p className="text-sm text-gray-600 mb-2">Popular Topics:</p>
+          <p className="text-sm text-gray-600 mb-2">Check out our suggested <b>Marketing Curriculum:</b></p>
           <div className="flex flex-wrap gap-2">
             {suggestedTopics.map((topic) => (
               <Button

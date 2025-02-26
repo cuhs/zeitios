@@ -45,7 +45,7 @@ const FileUpload = ({ onUploadComplete }: FileUploadProps) => {
       <input
         type="file"
         onChange={handleFileChange}
-        accept=".txt, .pdf, .docx, .jpg, .png, .jpeg"
+        accept=".jpg, .png, .jpeg"
       />
       <Button onClick={handleUpload} disabled={isUploading || !file}>
         {isUploading ? "Uploading..." : "Upload file"}

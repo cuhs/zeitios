@@ -21,7 +21,7 @@ export const ChatInterface = ({ topic, isFileUpload = false, onConversationChang
     {
       content: isFileUpload
         ? `${topic}`
-        : `Let's explore ${topic}! What would you like to know?`,
+        : `Let's explore ${topic}! Start by asking a question about the topic.`,
       isUser: false,
     },
   ]);
