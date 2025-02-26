@@ -26,10 +26,18 @@ Aidan's Addendum:
 - tried to make headers appear (###, ##, #) with markdown but only got bold and italics to work
 - tried to make the messages jump to the most recent sent but right now we have to manually scroll
 - installed some packages to try to get these to work via react, so if bugs encountered that may be why.
-    - added "@tailwindcss/typography" to config for bolding in chat. <- may have to "npm install" this!
+    - (DEPRECATED COMMENT, IGNORE FOR NOW): added "@tailwindcss/typography" to config for bolding in chat. <- may have to "npm install" this!
 
 
 IMPORTANT:
 Anshul here! :/
 --> I created a command called "npm run both" so that you don't need to call both the server and vite at the same time
 Should make life easier LOL
+
+Aidan's Addendum v2 (2/19/25):
+- changed header to ZeitiosAI
+- added pointer when hovering over topics, explore, and send buttons
+- made chat jump/scroll to most recently sent message! yay!
+- note -> found a rare bug when the bot sends a lot of messages, it will:
+    1: go off the page too horizontal (?? not too sure about this but,)
+    2: any subsequent messages (blue) sent by the user will not be shown for some reason (because text pushing off? idk)

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect, forwardRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,10 +27,16 @@ export const ChatInterface = ({ topic, isFileUpload = false, onConversationChang
   ]);
   const [newMessage, setNewMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false); // Track AI typing state
+  const scrollRef = useRef<HTMLDivElement>(null);  // scroll element created
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   const handleSend = async () => {
     if (!newMessage.trim()) return;
-
+    
     // Add user message to chat
     setMessages((prev) => [...prev, { content: newMessage, isUser: true }]);
     setNewMessage("");
@@ -64,7 +70,7 @@ export const ChatInterface = ({ topic, isFileUpload = false, onConversationChang
       <div className="p-4 border-b">
         <h3 className="text-lg font-semibold">{isFileUpload ? "Image Feedback" : `Chat about ${topic}`}</h3>
       </div>
-      <ScrollArea className="h-[400px] p-4">
+      <ScrollArea ref={scrollRef} className="h-[400px] p-4">
         <div className="space-y-4">
           {messages.map((message, index) => (
             <div
@@ -78,7 +84,25 @@ export const ChatInterface = ({ topic, isFileUpload = false, onConversationChang
                     : "bg-gray-100 text-gray-800 text-left"
                 }`}
               >
-                <ReactMarkdown>{message.content}</ReactMarkdown>
+                <ReactMarkdown
+                  components={{
+                    h1: ({ node, children, ...props }) => (
+                      <h1 className="text-3xl font-bold mt-4 mb-2" {...props}>{children}</h1>
+                    ),
+                    h2: ({ node, children, ...props }) => (
+                      <h2 className="text-2xl font-semibold mt-3 mb-1" {...props}>{children}</h2>
+                    ),
+                    h3: ({ node, children, ...props }) => (
+                      <h3 className="text-xl font-medium mt-2 mb-1" {...props}>{children}</h3>
+                    ),
+                    p: ({ node, children, ...props }) => (
+                      <p className="text-gray-800" {...props}>{children}</p>
+                    ),
+                  }}
+                >
+                  {message.content}
+                </ReactMarkdown>
+
               </div>
             </div>
           ))}
@@ -93,7 +117,8 @@ export const ChatInterface = ({ topic, isFileUpload = false, onConversationChang
           )}
         </div>
       </ScrollArea>
-
+        
+        
       <div className="p-4 border-t flex gap-2">
         <Input
           placeholder="Ask a question..."
@@ -106,7 +131,7 @@ export const ChatInterface = ({ topic, isFileUpload = false, onConversationChang
         />
         <Button 
           onClick={handleSend} 
-          className="bg-primary hover:bg-primary/90"
+          className="bg-primary hover:bg-primary/90 cursor-pointer"
           disabled={isTyping} // Disable button while AI is responding
         >
           {isTyping ? "..." : "Send"}
