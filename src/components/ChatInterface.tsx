@@ -62,7 +62,7 @@ export const ChatInterface = ({ topic, isFileUpload = false, onConversationChang
   return (
     <Card className="w-full max-w-2xl mx-auto bg-white shadow-lg animate-fade-in">
       <div className="p-4 border-b">
-        <h3 className="text-lg font-semibold">{isFileUpload ? "Marketing advice" : `Chat about ${topic}`}</h3>
+        <h3 className="text-lg font-semibold">{isFileUpload ? "Image Feedback" : `Chat about ${topic}`}</h3>
       </div>
       <ScrollArea className="h-[400px] p-4">
         <div className="space-y-4">
