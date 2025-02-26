@@ -12,13 +12,16 @@ interface Message {
 
 interface ChatInterfaceProps {
   topic: string;
+  isFileUpload?: boolean;
   onConversationChange(conversation: string): void;
 }
 
-export const ChatInterface = ({ topic, onConversationChange }: ChatInterfaceProps) => {
+export const ChatInterface = ({ topic, isFileUpload = false, onConversationChange }: ChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
-      content: `Let's explore ${topic}! What would you like to know?`,
+      content: isFileUpload
+        ? `${topic}`
+        : `Let's explore ${topic}! Start by asking a question about the topic.`,
       isUser: false,
     },
   ]);
@@ -33,14 +36,12 @@ export const ChatInterface = ({ topic, onConversationChange }: ChatInterfaceProp
 
   const handleSend = async () => {
     if (!newMessage.trim()) return;
-
+    
     // Add user message to chat
-    // We clone the prev state to avoid direct mutation
     setMessages((prev) => [...prev, { content: newMessage, isUser: true }]);
     setNewMessage("");
 
     setIsTyping(true); // Show typing indicator
-    console.log("AI is typing..."); // Debugging
 
     try {
       // Send message to server
@@ -61,18 +62,17 @@ export const ChatInterface = ({ topic, onConversationChange }: ChatInterfaceProp
       console.error("Error sending message:", error);
     } finally {
       setIsTyping(false); // Hide typing indicator after response
-      console.log("AI response received."); // Debugging
     }
   };
 
   return (
     <Card className="w-full max-w-2xl mx-auto bg-white shadow-lg animate-fade-in">
       <div className="p-4 border-b">
-        <h3 className="text-lg font-semibold">Chat about {topic}</h3>
+        <h3 className="text-lg font-semibold">{isFileUpload ? "Image Feedback" : `Chat about ${topic}`}</h3>
       </div>
       <ScrollArea ref={scrollRef} className="h-[400px] p-4">
         <div className="space-y-4">
-              {messages.map((message, index) => (
+          {messages.map((message, index) => (
             <div
               key={index}
               className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}
@@ -80,7 +80,7 @@ export const ChatInterface = ({ topic, onConversationChange }: ChatInterfaceProp
               <div
                 className={`max-w-[80%] p-3 rounded-lg ${
                   message.isUser
-                    ? "bg-blue-300 text-white text-right" // ✅ Align user messages right
+                    ? "bg-blue-500 text-white text-right" // Align user messages right
                     : "bg-gray-100 text-gray-800 text-left"
                 }`}
               >
