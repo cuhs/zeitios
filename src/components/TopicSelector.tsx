@@ -8,7 +8,7 @@ import { FileUpload } from "@/components/FileUpload.tsx"
  * TopicSelector component props
  */
 interface TopicSelectorProps {
-  onTopicSelect(topic: string): void;
+  onTopicSelect(topic: string, uploadedFile?: boolean): void;
 }
 
 const suggestedTopics = [
@@ -24,11 +24,12 @@ export const TopicSelector = ({ onTopicSelect }: TopicSelectorProps) => {
 
   const handleUploadComplete = (response: string) => {
     setFileResponse(response);
+    onTopicSelect(response, true);
   };
 
   useEffect(() => {
     if (fileResponse) {
-      onTopicSelect(fileResponse); 
+      onTopicSelect(fileResponse, true); 
     }
   }, [fileResponse, onTopicSelect]);
 
@@ -73,3 +74,4 @@ export const TopicSelector = ({ onTopicSelect }: TopicSelectorProps) => {
     </Card>
   );
 };
+

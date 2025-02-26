@@ -5,7 +5,13 @@ import { WebsiteSuggestions } from '@/components/WebsiteSuggestions';
 
 const Index = () => {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  const [isFileUpload, setIsFileUpload] = useState(false);
   const [currentConversation, setCurrentConversation] = useState<string | null>(null);
+  
+  const handleTopicSelect = (topic: string, uploadedFile: boolean = false) => {
+    setSelectedTopic(topic);
+    setIsFileUpload(uploadedFile); // Set to true if a file was uploaded
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -20,11 +26,11 @@ const Index = () => {
           </p>
         </div>
 
-        <TopicSelector onTopicSelect={setSelectedTopic} />
+        <TopicSelector onTopicSelect={handleTopicSelect} />
 
         {selectedTopic && (
           <div className="space-y-8 animate-slide-up">
-            <ChatInterface topic={selectedTopic} onConversationChange={setCurrentConversation}/>
+            <ChatInterface topic={selectedTopic} isFileUpload={isFileUpload} onConversationChange={setCurrentConversation} />
             <WebsiteSuggestions topic={selectedTopic} conversation={currentConversation}/>
           </div>
         )}
