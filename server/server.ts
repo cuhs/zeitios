@@ -7,7 +7,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
-dotenv.config();
+dotenv.config({override: true});
 console.log("API KEY:", process.env.OPENAI_API_KEY);
 
 const app = express();
