@@ -7,6 +7,7 @@ const Navigation = () => {
   const tabs = [
     { name: 'AI Tutor', path: '/' },
     { name: 'Course Upload', path: '/course-upload' },
+    { name: 'Curriculum Upload', path: '/curriculum-upload' },
   ];
 
   return (
