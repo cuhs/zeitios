@@ -14,27 +14,25 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container py-8 space-y-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            ZeitiosAI Learning Assistant
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Select a topic to start learning with our AI tutor. Get instant answers,
-            resource recommendations, and test your knowledge!
-          </p>
-        </div>
-
-        <TopicSelector onTopicSelect={handleTopicSelect} />
-
-        {selectedTopic && (
-          <div className="space-y-8 animate-slide-up">
-            <ChatInterface topic={selectedTopic} isFileUpload={isFileUpload} onConversationChange={setCurrentConversation} />
-            <WebsiteSuggestions topic={selectedTopic} conversation={currentConversation}/>
-          </div>
-        )}
+    <div className="container py-8 space-y-8">
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          ZeitiosAI Learning Assistant
+        </h1>
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          Select a topic to start learning with our AI tutor. Get instant answers,
+          resource recommendations, and test your knowledge!
+        </p>
       </div>
+
+      <TopicSelector onTopicSelect={handleTopicSelect} />
+
+      {selectedTopic && (
+        <div className="space-y-8 animate-slide-up">
+          <ChatInterface topic={selectedTopic} isFileUpload={isFileUpload} onConversationChange={setCurrentConversation} />
+          <WebsiteSuggestions topic={selectedTopic} conversation={currentConversation}/>
+        </div>
+      )}
     </div>
   );
 };

@@ -113,4 +113,59 @@ app.post("/exa", async (req, res) => {
 }
 });
 
+app.post("/generate-video", upload.single("file"), async (req: express.Request, res: express.Response) => {
+  try {
+    const file = (req as any).file;
+    if (!file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    // Read the uploaded file
+    const fileContent = fs.readFileSync(filePath, 'utf-8');
+
+    // Use OpenAI to generate a script from the content
+    const scriptResponse = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert video script writer. Create an engaging and educational script based on the provided course material. The script should be well-structured and easy to follow."
+        },
+        {
+          role: "user",
+          content: `Create a video script from this course material:\n\n${fileContent}`
+        }
+      ],
+      max_tokens: 2000,
+    });
+
+    const script = scriptResponse.choices[0]?.message?.content;
+
+    // Use OpenAI to generate video content
+    const videoResponse = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert video content generator. Create a video based on the provided script. The video should be educational and engaging."
+        },
+        {
+          role: "user",
+          content: `Generate a video based on this script:\n\n${script}`
+        }
+      ],
+      max_tokens: 2000,
+    });
+
+    // In a real implementation, you would use a video generation service here
+    // For now, we'll return a mock video URL
+    const videoUrl = "https://example.com/generated-video.mp4";
+
+    res.json({ videoUrl, script });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Failed to generate video" });
+  }
+});
+
 app.listen(3001, () => console.log("Server running on http://localhost:3001"));
