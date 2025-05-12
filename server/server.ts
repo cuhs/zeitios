@@ -6,9 +6,6 @@ import Exa from "exa-js";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-// We'll handle these packages with dynamic imports since they're optional
-// import { PDFExtract } from "pdf.js-extract";
-// import mammoth from "mammoth";
 
 dotenv.config({override: true});
 console.log("API KEY:", process.env.OPENAI_API_KEY);
@@ -16,16 +13,14 @@ console.log("API KEY:", process.env.OPENAI_API_KEY);
 const app = express();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const exa = new Exa(process.env.EXA_API_KEY);
-// const pdfExtract = new PDFExtract();
 
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 let filePath = "";
-let destinationFolder = "uploads/" //change as needed
+let destinationFolder = "uploads/" 
 
-// Create uploads directory if it doesn't exist
 if (!fs.existsSync(destinationFolder)) {
   fs.mkdirSync(destinationFolder, { recursive: true });
 }
@@ -141,16 +136,13 @@ class CurriculumAgent {
     this.openai = openai;
     this.curriculum = curriculum;
     this.processingId = processingId;
-    // Store instance in the global map
     curriculumProcessors.set(processingId, this);
   }
   
-  // Get current processing status
   getStatus() {
     return this.processingStatus;
   }
   
-  // Parse the curriculum and extract module outlines
   async parseCurriculum(): Promise<void> {
     try {
       this.processingStatus = { stage: 'parsing', progress: 10 };
@@ -173,7 +165,6 @@ class CurriculumAgent {
       const result = JSON.parse(response.choices[0]?.message?.content || '{"modules":[]}');
       this.moduleOutlines = result.modules || [];
       
-      // If no modules were extracted, create a single module with the entire curriculum
       if (this.moduleOutlines.length === 0) {
         this.moduleOutlines = [{
           title: "Complete Curriculum",
@@ -194,7 +185,6 @@ class CurriculumAgent {
     }
   }
   
-  // Generate content for a single module
   async generateModuleContent(module: { title: string; content: string }, index: number): Promise<string> {
     try {
       this.processingStatus = { 
