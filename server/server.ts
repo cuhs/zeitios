@@ -147,6 +147,8 @@ class CurriculumAgent {
     try {
       this.processingStatus = { stage: 'parsing', progress: 10 };
       
+      console.log("Starting curriculum parsing with text length:", this.curriculum.length);
+      
       const response = await this.openai.chat.completions.create({
         model: "gpt-4o",
         messages: [
@@ -162,10 +164,26 @@ class CurriculumAgent {
         response_format: { type: "json_object" }
       });
       
-      const result = JSON.parse(response.choices[0]?.message?.content || '{"modules":[]}');
-      this.moduleOutlines = result.modules || [];
+      const responseContent = response.choices[0]?.message?.content;
+      if (!responseContent) {
+        throw new Error("Empty response from OpenAI API");
+      }
+      
+      console.log("Received response from OpenAI API for curriculum parsing");
+      
+      try {
+        const result = JSON.parse(responseContent);
+        this.moduleOutlines = result.modules || [];
+        
+        console.log("Parsed JSON result:", JSON.stringify(result, null, 2));
+      } catch (jsonError) {
+        console.error("JSON parsing error:", jsonError);
+        console.error("Raw API response:", responseContent);
+        throw new Error("Failed to parse JSON from API response");
+      }
       
       if (this.moduleOutlines.length === 0) {
+        console.log("No modules found in curriculum, using entire content as one module");
         this.moduleOutlines = [{
           title: "Complete Curriculum",
           content: this.curriculum
@@ -181,7 +199,13 @@ class CurriculumAgent {
       console.log(`Parsed ${this.moduleOutlines.length} modules from curriculum`);
     } catch (error) {
       console.error("Error parsing curriculum:", error);
-      throw new Error("Failed to parse curriculum");
+      if (error.response) {
+        console.error("OpenAI API Error:", {
+          status: error.response.status,
+          data: error.response.data
+        });
+      }
+      throw new Error(`Failed to parse curriculum: ${error.message}`);
     }
   }
   
@@ -238,32 +262,54 @@ Generate comprehensive educational material that thoroughly covers all the neces
   // Generate content for all modules
   async generateFullCourseContent(): Promise<string> {
     try {
+      console.log("Starting course content generation process");
+      
       // First, parse the curriculum to extract modules
       await this.parseCurriculum();
       
       // Generate an introduction
+      console.log("Generating course introduction");
       const introduction = await this.generateIntroduction();
       this.generatedContent = introduction;
       
       // Generate content for each module sequentially
       for (let i = 0; i < this.moduleOutlines.length; i++) {
         const module = this.moduleOutlines[i];
-        console.log(`Generating content for module: ${module.title}`);
+        console.log(`Generating content for module ${i+1}/${this.moduleOutlines.length}: ${module.title}`);
         const moduleContent = await this.generateModuleContent(module, i);
         this.generatedContent += `\n\n${moduleContent}`;
       }
       
       // Generate a conclusion
+      console.log("Generating course conclusion");
       const conclusion = await this.generateConclusion();
       this.generatedContent += `\n\n${conclusion}`;
       
       // Mark as complete
       this.processingStatus = { stage: 'complete', progress: 100, totalModules: this.moduleOutlines.length };
+      console.log("Course content generation complete");
       
       return this.generatedContent;
     } catch (error) {
       console.error("Error generating full course content:", error);
-      throw new Error("Failed to generate course content");
+      if (error.response) {
+        console.error("OpenAI API Error:", {
+          status: error.response.status,
+          data: error.response.data
+        });
+      }
+      
+      // Update processing status to indicate error
+      this.processingStatus = { 
+        stage: 'complete', 
+        progress: 100,
+        totalModules: this.moduleOutlines.length || 0
+      };
+      
+      // Set error message as content
+      this.generatedContent = `# Error Generating Course Content\n\nThere was an error generating your course content: ${error.message}\n\nPlease try again or contact support if the issue persists.`;
+      
+      throw new Error(`Failed to generate course content: ${error.message}`);
     } finally {
       // Remove from the processors map after 5 minutes to clean up
       setTimeout(() => {

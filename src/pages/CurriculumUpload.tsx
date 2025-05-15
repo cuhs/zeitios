@@ -20,6 +20,7 @@ const CurriculumUpload = () => {
   const [generatedContent, setGeneratedContent] = useState<string | null>(null);
   const [processingStatus, setProcessingStatus] = useState<ProcessingStatus | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
 
@@ -68,8 +69,13 @@ const CurriculumUpload = () => {
             clearInterval(pollingIntervalRef.current);
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching processing status:', error);
+        setError('Error checking processing status. Please try again.');
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current);
+        }
+        setIsProcessing(false);
       }
     }, 2000);
   };
@@ -82,17 +88,20 @@ const CurriculumUpload = () => {
       const response = await fetch(`http://localhost:3001/api/generated-content/${processingId}`);
       
       if (!response.ok) {
-        throw new Error('Failed to fetch generated content');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch generated content');
       }
       
       const data = await response.json();
       setGeneratedContent(data.content);
       setIsProcessing(false);
-    } catch (error) {
+      setError(null); // Clear any previous errors
+    } catch (error: any) {
       console.error('Error fetching generated content:', error);
+      setError('Error retrieving content: ' + error.message);
       toast({
         title: "Error retrieving content",
-        description: "There was a problem retrieving the generated content.",
+        description: error.message || "There was a problem retrieving the generated content.",
         variant: "destructive",
         duration: 5000,
       });
@@ -106,6 +115,7 @@ const CurriculumUpload = () => {
       setGeneratedContent(null);
       setProcessingStatus(null);
       setProcessingId(null);
+      setError(null); // Clear any previous errors
     }
   };
 
@@ -125,6 +135,7 @@ const CurriculumUpload = () => {
     setIsProcessing(true);
     setProcessingProgress(0);
     setGeneratedContent(null);
+    setError(null); // Clear any previous errors
     
     try {
       // 1. Read the file content
@@ -140,7 +151,8 @@ const CurriculumUpload = () => {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to initiate course generation');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to initiate course generation');
       }
       
       const data = await response.json();
@@ -148,11 +160,12 @@ const CurriculumUpload = () => {
       // 3. Store the processing ID for status polling
       setProcessingId(data.processingId);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error processing curriculum:", error);
+      setError('Error processing file: ' + error.message);
       toast({
         title: "Error processing curriculum",
-        description: "There was an error processing your file. Please make sure it's a valid text document.",
+        description: error.message || "There was an error processing your file. Please make sure it's a valid text document.",
         variant: "destructive",
         duration: 5000,
       });
@@ -369,6 +382,18 @@ const CurriculumUpload = () => {
                 </Button>
                 
                 {renderProcessingStatus()}
+                
+                {error && (
+                  <div className="bg-red-50 p-4 rounded mt-4">
+                    <div className="flex items-start space-x-2 text-red-700">
+                      <div className="mt-0.5">⚠️</div>
+                      <div>
+                        <p className="font-medium">Error</p>
+                        <p className="text-sm">{error}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </Card>
