@@ -2,20 +2,16 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Loader2, Upload, FileText, PlayCircle, PauseCircle, AlertCircle, Download } from "lucide-react";
-import { generateSpeech, getAvailableVoices } from '@/lib/elevenlabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2, Upload, FileText, AlertCircle, Download } from "lucide-react";
+import { generateSpeech } from '@/lib/elevenlabs';
 
 const CourseUpload = () => {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [fileContent, setFileContent] = useState<string>('');
-  const [selectedVoice, setSelectedVoice] = useState('premade/Adam');
-  const [voices, setVoices] = useState<any[]>([]);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   const [audioProgress, setAudioProgress] = useState(0);
   const [apiKeyMissing, setApiKeyMissing] = useState(false);
@@ -30,18 +26,6 @@ const CourseUpload = () => {
     };
   }, [audioUrl]);
 
-  useEffect(() => {
-    const loadVoices = async () => {
-      try {
-        const availableVoices = await getAvailableVoices();
-        setVoices(availableVoices);
-      } catch (error) {
-        console.error('Failed to load voices:', error);
-      }
-    };
-    loadVoices();
-  }, []);
-
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
@@ -53,7 +37,6 @@ const CourseUpload = () => {
         const text = await selectedFile.text();
         setFileContent(text);
       } else {
-
         setFileContent('');
       }
       
@@ -62,7 +45,6 @@ const CourseUpload = () => {
         setAudioUrl(null);
       }
       setAudioBlob(null);
-      setIsPlaying(false);
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.src = '';
@@ -114,7 +96,6 @@ const CourseUpload = () => {
       
       const audioBlob = await generateSpeech({
         text: textToConvert,
-        voiceId: selectedVoice,
         onProgress: (progress) => {
           setAudioProgress(progress);
         }
@@ -131,7 +112,6 @@ const CourseUpload = () => {
       
       if (audioRef.current) {
         audioRef.current.src = url;
-        audioRef.current.onended = () => setIsPlaying(false);
       }
       
       console.log('Audio generation complete, URL created:', url);
@@ -141,21 +121,6 @@ const CourseUpload = () => {
     } finally {
       setIsGeneratingAudio(false);
     }
-  };
-  
-  const togglePlayPause = () => {
-    if (!audioRef.current || !audioBlob) return;
-    
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play().catch(error => {
-        console.error('Audio playback error:', error);
-        setErrorMessage('Failed to play audio. Please try again.');
-      });
-    }
-    
-    setIsPlaying(!isPlaying);
   };
   
   const handleDownloadAudio = () => {
@@ -259,62 +224,28 @@ const CourseUpload = () => {
                   )}
                 </div>
               </div>
-              
-              {file && (
-                <div className="space-y-4">
-                  <label className="block text-base font-semibold text-black">
-                    Select Voice
-                  </label>
-                  <Select value={selectedVoice} onValueChange={setSelectedVoice}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select a voice" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {/* Default voices if API fails to load */}
-                      {voices.length === 0 ? (
-                        <>
-                          <SelectItem value="premade/Adam">Adam</SelectItem>
-                          <SelectItem value="premade/Rachel">Rachel</SelectItem>
-                          <SelectItem value="premade/Clyde">Clyde</SelectItem>
-                          <SelectItem value="premade/Domi">Domi</SelectItem>
-                        </>
-                      ) : (
-                        voices.map((voice) => (
-                          <SelectItem key={voice.voice_id} value={voice.voice_id}>
-                            {voice.name}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
 
               {audioBlob && !isGeneratingAudio && (
-                <div className="bg-gray-50 border border-gray-200">
-                  <div className="flex items-center justify-between p-4">
-                    <div className="flex items-center gap-3">
-                      <button onClick={togglePlayPause} className="text-black">
-                        {isPlaying ? (
-                          <PauseCircle className="h-10 w-10" />
-                        ) : (
-                          <PlayCircle className="h-10 w-10" />
-                        )}
-                      </button>
-                      <div>
-                        <p className="text-sm font-medium">Audio Preview</p>
-                        <p className="text-xs text-gray-500">Generated with ElevenLabs</p>
-                      </div>
-                    </div>
+                <div className="bg-gray-50 border border-gray-200 p-4">
+                  <div className="mb-3">
+                    <p className="text-sm font-medium">Audio Preview</p>
+                    <p className="text-xs text-gray-500 mb-2">Generated with ElevenLabs</p>
+                    <audio 
+                      ref={audioRef} 
+                      controls 
+                      className="w-full" 
+                      src={audioUrl || undefined}
+                    />
+                  </div>
+                  <div className="flex justify-end">
                     <button 
                       onClick={handleDownloadAudio}
-                      className="p-2 rounded-full hover:bg-gray-100"
-                      title="Download audio"
+                      className="flex items-center gap-1 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded"
                     >
-                      <Download className="h-5 w-5 text-gray-600" />
+                      <Download className="h-4 w-4" />
+                      Download
                     </button>
                   </div>
-                  <audio ref={audioRef} className="hidden" controls />
                 </div>
               )}
 

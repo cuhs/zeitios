@@ -9,8 +9,8 @@ interface TextToSpeechParams {
 }
 
 // Default voice and model IDs
-const DEFAULT_VOICE_ID = 'premade/Adam'; // Replace with your preferred default voice
-const DEFAULT_MODEL_ID = 'eleven_monolingual_v1'; // Replace with your preferred default model
+const DEFAULT_VOICE_ID = 'Adam'; 
+const DEFAULT_MODEL_ID = 'eleven_monolingual_v1'; 
 
 // Get API key from environment or directly (for development)
 const ELEVENLABS_API_KEY = import.meta.env.VITE_ELEVENLABS_API_KEY || '';
