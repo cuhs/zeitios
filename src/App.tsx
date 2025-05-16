@@ -6,7 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import CourseUpload from "./pages/CourseUpload";
 import NotFound from "./pages/NotFound";
-import CourseUpload from "./pages/CourseUpload";
+import CurriculumUpload from "./pages/CurriculumUpload";
+import Navigation from "./components/Navigation";
 
 const queryClient = new QueryClient();
 
@@ -16,16 +17,15 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-<<<<<<< Updated upstream
-          <Route path="/course-upload" element={<CourseUpload />} />
-=======
-          <Route path="/upload" element={<CourseUpload />} />
->>>>>>> Stashed changes
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <div className="min-h-screen bg-background">
+          <Navigation />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/course-upload" element={<CourseUpload />} />
+            <Route path="/curriculum-upload" element={<CurriculumUpload />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </div>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
