@@ -2,15 +2,37 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/NavBar';
+<<<<<<< Updated upstream
+=======
+import { TextToSpeechPlayer } from '@/components/TextToSpeechPlayer';
+>>>>>>> Stashed changes
 
 const CourseUpload = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+<<<<<<< Updated upstream
   const navigate = useNavigate();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       setSelectedFile(event.target.files[0]);
+=======
+  const [fileContent, setFileContent] = useState<string>('');
+  const navigate = useNavigate();
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      const file = event.target.files[0];
+      setSelectedFile(file);
+      
+      // Read file content
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target?.result as string;
+        setFileContent(content);
+      };
+      reader.readAsText(file);
+>>>>>>> Stashed changes
     }
   };
 
@@ -72,6 +94,7 @@ const CourseUpload = () => {
             </div>
 
             {selectedFile && (
+<<<<<<< Updated upstream
               <div className="mt-8 text-center animate-fade-in">
                 <Button
                   onClick={handleUpload}
@@ -80,6 +103,26 @@ const CourseUpload = () => {
                 >
                   {isUploading ? 'Processing...' : 'Generate my AI teaching video!'}
                 </Button>
+=======
+              <div className="mt-8 space-y-8 animate-fade-in">
+                <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Preview Content</h2>
+                  <div className="max-h-40 overflow-y-auto mb-4">
+                    <p className="text-gray-700 whitespace-pre-wrap">{fileContent}</p>
+                  </div>
+                  <TextToSpeechPlayer text={fileContent} />
+                </div>
+                
+                <div className="text-center">
+                  <Button
+                    onClick={handleUpload}
+                    disabled={isUploading}
+                    className="bg-[#2866C5] hover:bg-[#2866C5]/90 text-white px-8 py-6 text-lg rounded-full transition-all duration-200 hover:shadow-lg hover:shadow-[#2866C5]/30 transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isUploading ? 'Processing...' : 'Generate my AI teaching video!'}
+                  </Button>
+                </div>
+>>>>>>> Stashed changes
               </div>
             )}
           </div>

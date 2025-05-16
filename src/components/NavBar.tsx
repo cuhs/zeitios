@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import { useLocation, Link } from 'react-router-dom';
 
 const NavBar = () => {
@@ -32,6 +33,44 @@ const NavBar = () => {
         </div>
       </div>
     </div>
+=======
+import { useNavigate } from 'react-router-dom';
+import { Button } from './ui/button';
+
+const NavBar = () => {
+  const navigate = useNavigate();
+
+  return (
+    <nav className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-sm shadow-sm z-50">
+      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/')}
+            className="text-lg font-semibold text-[#2866C5] hover:text-[#2866C5]/80"
+          >
+            ZeitiosAI
+          </Button>
+        </div>
+        <div className="flex items-center space-x-4">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/')}
+            className="text-gray-600 hover:text-gray-900"
+          >
+            Home
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/upload')}
+            className="text-gray-600 hover:text-gray-900"
+          >
+            Upload Course
+          </Button>
+        </div>
+      </div>
+    </nav>
+>>>>>>> Stashed changes
   );
 };
 
