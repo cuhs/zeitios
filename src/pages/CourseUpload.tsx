@@ -5,6 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Loader2, Upload, FileText, PlayCircle, PauseCircle, AlertCircle, Download } from "lucide-react";
 import { generateSpeech, getAvailableVoices } from '@/lib/elevenlabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useNavigate } from 'react-router-dom';
+import NavBar from '@/components/NavBar';
 
 const CourseUpload = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -21,6 +23,7 @@ const CourseUpload = () => {
   const [apiKeyMissing, setApiKeyMissing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     return () => {
@@ -53,7 +56,6 @@ const CourseUpload = () => {
         const text = await selectedFile.text();
         setFileContent(text);
       } else {
-
         setFileContent('');
       }
       
@@ -170,196 +172,187 @@ const CourseUpload = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-white">
-      <div className="max-w-6xl mx-auto px-6 py-16">
-        {apiKeyMissing && (
-          <div className="bg-amber-50 border border-amber-200 p-4 mb-8 flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5" />
-            <div>
-              <h3 className="font-medium text-amber-800">ElevenLabs API Key Required</h3>
-              <p className="text-amber-700 text-sm mt-1">
-                To use the audio generation feature, please set your ElevenLabs API key in the src/lib/elevenlabs.ts file.
-              </p>
-            </div>
-          </div>
-        )}
-        
-        {errorMessage && (
-          <div className="bg-red-50 border border-red-200 p-4 mb-8 flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
-            <div>
-              <h3 className="font-medium text-red-800">Error</h3>
-              <p className="text-red-700 text-sm mt-1">{errorMessage}</p>
-            </div>
-          </div>
-        )}
-      
-        <div className="relative mb-16">
-          <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 text-9xl font-black text-gray-50 select-none">
-            CREATE
-          </div>
-          <div className="text-center relative z-10">
-            <h1 className="text-4xl font-black text-black mb-6 tracking-tight">
-              Course Content to Video Generator
+    <>
+      <NavBar />
+      <div className="min-h-screen bg-[#EDF4FF] flex items-center justify-center pt-16">
+        <div className="container max-w-4xl mx-auto py-8 space-y-8">
+          <div className="text-center mb-12 bg-white/50 backdrop-blur-sm rounded-2xl p-8 shadow-xl shadow-[#2866C5]/10">
+            <h1 className="text-5xl font-bold text-gray-900 mb-6 bg-gradient-to-r from-[#2866C5] to-[#2866C5]/70 bg-clip-text text-transparent">
+              Course Content Upload
             </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Upload your course content and let our AI create an engaging video presentation
-              with ElevenLabs audio narration that brings your material to life.
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8 leading-relaxed">
+              Upload your course materials to generate an AI-powered teaching video.
+              We support PDF, DOCX, and TXT files.
             </p>
+            <Button 
+              onClick={() => navigate('/')}
+              variant="outline"
+              className="mb-8 px-6 py-4 rounded-full hover:bg-[#2866C5]/10 transition-all duration-200"
+            >
+              Back to Home
+            </Button>
           </div>
-        </div>
 
-        <div className="max-w-2xl mx-auto">
-          <Card className="p-10 border-gray-100 bg-white rounded-none shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <label className="block text-base font-semibold text-black">
-                  Upload Course Content
-                </label>
-                <div className="border-2 border-dashed border-gray-200 bg-gray-50 rounded-none p-8 text-center">
-                  <Input
-                    type="file"
-                    accept=".txt,.doc,.docx,.pdf"
-                    onChange={handleFileChange}
-                    className="cursor-pointer hidden"
-                    id="file-upload"
-                  />
-                  {!file && (
-                    <div className="space-y-4">
-                      <Upload className="h-8 w-8 text-gray-400 mx-auto" />
-                      <div>
-                        <label 
-                          htmlFor="file-upload"
-                          className="text-sm text-black font-medium cursor-pointer hover:underline"
-                        >
-                          Click to upload a file
-                        </label>
-                        <p className="mt-1 text-sm text-gray-500">
-                          or drag and drop
-                        </p>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        Supported formats: TXT, DOC, DOCX, PDF
-                      </p>
+          {apiKeyMissing && (
+            <div className="bg-amber-50 border border-amber-200 p-4 mb-8 flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5" />
+              <div>
+                <h3 className="font-medium text-amber-800">ElevenLabs API Key Required</h3>
+                <p className="text-amber-700 text-sm mt-1">
+                  To use the audio generation feature, please set your ElevenLabs API key in the .env file.
+                </p>
+              </div>
+            </div>
+          )}
+          
+          {errorMessage && (
+            <div className="bg-red-50 border border-red-200 p-4 mb-8 flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
+              <div>
+                <h3 className="font-medium text-red-800">Error</h3>
+                <p className="text-red-700 text-sm mt-1">{errorMessage}</p>
+              </div>
+            </div>
+          )}
+
+          <div className="max-w-xl mx-auto">
+            <div className="border-2 border-dashed border-[#2866C5]/30 rounded-2xl p-12 text-center bg-white/50 backdrop-blur-sm hover:border-[#2866C5]/50 transition-all duration-200 shadow-lg shadow-[#2866C5]/10">
+              <input
+                type="file"
+                onChange={handleFileChange}
+                accept=".pdf,.docx,.txt"
+                className="hidden"
+                id="file-upload"
+              />
+              <label
+                htmlFor="file-upload"
+                className="cursor-pointer inline-block w-full"
+              >
+                <div className="space-y-4">
+                  <div className="text-7xl transform transition-transform duration-200 hover:scale-110">📚</div>
+                  <div className="text-xl font-medium text-gray-900 mt-4">
+                    {file ? file.name : 'Click to upload your course content'}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {file ? 'File selected' : 'PDF, DOCX, or TXT files only'}
+                  </div>
+                </div>
+              </label>
+            </div>
+
+            {file && (
+              <div className="mt-8 space-y-8 animate-fade-in">
+                {fileContent && (
+                  <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
+                    <h2 className="text-xl font-semibold text-gray-900 mb-4">Preview Content</h2>
+                    <div className="max-h-40 overflow-y-auto mb-4">
+                      <p className="text-gray-700 whitespace-pre-wrap">{fileContent}</p>
                     </div>
-                  )}
-                  
-                  {file && (
-                    <div className="inline-flex items-center space-x-3 px-4 py-3 bg-white border border-gray-200">
-                      <FileText className="h-5 w-5 text-black" />
-                      <div className="text-left">
-                        <p className="text-sm font-medium text-black">
-                          {file.name}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {(file.size / 1024 / 1024).toFixed(2)} MB • <label htmlFor="file-upload" className="cursor-pointer hover:underline">Change</label>
-                        </p>
+                  </div>
+                )}
+
+                {fileContent && (
+                  <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
+                    <h2 className="text-xl font-semibold text-gray-900 mb-4">Voice Selection</h2>
+                    <Select value={selectedVoice} onValueChange={setSelectedVoice}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a voice" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {voices.length === 0 ? (
+                          <>
+                            <SelectItem value="premade/Adam">Adam</SelectItem>
+                            <SelectItem value="premade/Rachel">Rachel</SelectItem>
+                            <SelectItem value="premade/Clyde">Clyde</SelectItem>
+                            <SelectItem value="premade/Domi">Domi</SelectItem>
+                          </>
+                        ) : (
+                          voices.map((voice) => (
+                            <SelectItem key={voice.voice_id} value={voice.voice_id}>
+                              {voice.name}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {audioBlob && !isGeneratingAudio && (
+                  <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <button onClick={togglePlayPause} className="text-[#2866C5]">
+                          {isPlaying ? (
+                            <PauseCircle className="h-10 w-10" />
+                          ) : (
+                            <PlayCircle className="h-10 w-10" />
+                          )}
+                        </button>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">Audio Preview</p>
+                          <p className="text-xs text-gray-500">Generated with ElevenLabs</p>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={handleDownloadAudio}
+                        className="p-2 rounded-full hover:bg-[#2866C5]/10"
+                        title="Download audio"
+                      >
+                        <Download className="h-5 w-5 text-[#2866C5]" />
+                      </button>
+                    </div>
+                    <audio ref={audioRef} className="hidden" controls />
+                  </div>
+                )}
+
+                {isGeneratingAudio && (
+                  <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
+                    <div className="flex items-center">
+                      <Loader2 className="mr-3 h-5 w-5 animate-spin text-[#2866C5]" />
+                      <div className="w-full">
+                        <p className="text-sm font-medium text-gray-900">Generating audio...</p>
+                        <div className="w-full bg-gray-200 h-1 mt-2 rounded-full overflow-hidden">
+                          <div 
+                            className="bg-[#2866C5] h-1 transition-all duration-300" 
+                            style={{ width: `${audioProgress}%` }}
+                          ></div>
+                        </div>
                       </div>
                     </div>
-                  )}
+                  </div>
+                )}
+                
+                <div className="text-center">
+                  <Button
+                    onClick={handleUpload}
+                    disabled={isUploading || isGeneratingAudio}
+                    className="bg-[#2866C5] hover:bg-[#2866C5]/90 text-white px-8 py-6 text-lg rounded-full transition-all duration-200 hover:shadow-lg hover:shadow-[#2866C5]/30 transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isUploading ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Processing... {uploadProgress}%
+                      </>
+                    ) : audioBlob ? (
+                      <>
+                        <Upload className="mr-2 h-5 w-5" />
+                        Generate Video with Audio
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="mr-2 h-5 w-5" />
+                        Generate Audio & Video
+                      </>
+                    )}
+                  </Button>
                 </div>
               </div>
-              
-              {file && (
-                <div className="space-y-4">
-                  <label className="block text-base font-semibold text-black">
-                    Select Voice
-                  </label>
-                  <Select value={selectedVoice} onValueChange={setSelectedVoice}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select a voice" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {/* Default voices if API fails to load */}
-                      {voices.length === 0 ? (
-                        <>
-                          <SelectItem value="premade/Adam">Adam</SelectItem>
-                          <SelectItem value="premade/Rachel">Rachel</SelectItem>
-                          <SelectItem value="premade/Clyde">Clyde</SelectItem>
-                          <SelectItem value="premade/Domi">Domi</SelectItem>
-                        </>
-                      ) : (
-                        voices.map((voice) => (
-                          <SelectItem key={voice.voice_id} value={voice.voice_id}>
-                            {voice.name}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-
-              {audioBlob && !isGeneratingAudio && (
-                <div className="bg-gray-50 border border-gray-200">
-                  <div className="flex items-center justify-between p-4">
-                    <div className="flex items-center gap-3">
-                      <button onClick={togglePlayPause} className="text-black">
-                        {isPlaying ? (
-                          <PauseCircle className="h-10 w-10" />
-                        ) : (
-                          <PlayCircle className="h-10 w-10" />
-                        )}
-                      </button>
-                      <div>
-                        <p className="text-sm font-medium">Audio Preview</p>
-                        <p className="text-xs text-gray-500">Generated with ElevenLabs</p>
-                      </div>
-                    </div>
-                    <button 
-                      onClick={handleDownloadAudio}
-                      className="p-2 rounded-full hover:bg-gray-100"
-                      title="Download audio"
-                    >
-                      <Download className="h-5 w-5 text-gray-600" />
-                    </button>
-                  </div>
-                  <audio ref={audioRef} className="hidden" controls />
-                </div>
-              )}
-
-              {isGeneratingAudio && (
-                <div className="flex items-center p-4 bg-gray-50 border border-gray-200">
-                  <Loader2 className="mr-3 h-5 w-5 animate-spin text-black" />
-                  <div className="w-full">
-                    <p className="text-sm font-medium">Generating audio...</p>
-                    <div className="w-full bg-gray-200 h-1 mt-2">
-                      <div 
-                        className="bg-black h-1" 
-                        style={{ width: `${audioProgress}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <Button
-                onClick={handleUpload}
-                disabled={!file || isUploading || isGeneratingAudio}
-                className="w-full h-12 bg-black hover:bg-gray-900 text-white rounded-none"
-              >
-                {isUploading ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Processing... {uploadProgress}%
-                  </>
-                ) : audioBlob ? (
-                  <>
-                    <Upload className="mr-2 h-5 w-5" />
-                    Generate Video with Audio
-                  </>
-                ) : (
-                  <>
-                    <Upload className="mr-2 h-5 w-5" />
-                    Generate Audio & Video
-                  </>
-                )}
-              </Button>
-            </div>
-          </Card>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
