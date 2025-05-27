@@ -8,11 +8,11 @@ import path from "path";
 import fs from "fs";
 
 dotenv.config({override: true});
-console.log("API KEY:", process.env.VITE_OPENAI_API_KEY);
+console.log("API KEY:", process.env.OPENAI_API_KEY);
 
 const app = express();
-const openai = new OpenAI({ apiKey: process.env.VITE_OPENAI_API_KEY });
-const exa = new Exa(process.env.VITE_EXA_API_KEY);
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const exa = new Exa(process.env.EXA_API_KEY);
 
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
