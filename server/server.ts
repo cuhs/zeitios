@@ -627,9 +627,13 @@ app.post("/api/generate-slides", async (req, res) => {
       result = JSON.parse(responseText);
       console.log("Parsed response:", JSON.stringify(result, null, 2));
       
-      // If the response contains a URL, return it
+      // Return both the download URL and preview URL
       if (result.url) {
-        res.json({ downloadUrl: result.url });
+        res.json({ 
+          downloadUrl: result.url,
+          previewUrl: result.url.replace('.pptx', '.pdf'), // Assuming the API provides a PDF preview
+          message: "Slides generated successfully"
+        });
       } else {
         res.json(result);
       }
