@@ -526,68 +526,97 @@ app.post("/api/extract-text", upload.single("file"), async (req: MulterRequest, 
     const fileExtension = path.extname(req.file.originalname).toLowerCase();
     let text = "";
 
+    console.log("Processing file:", {
+      originalName: req.file.originalname,
+      mimeType: req.file.mimetype,
+      extension: fileExtension
+    });
+
     // Extract text based on file type
     if (fileExtension === ".pdf") {
-      // Handle PDF extraction
       try {
         // Dynamically import pdf.js-extract
         const { default: pdfJsExtract } = await import('pdf.js-extract');
         const pdfExtract = new pdfJsExtract.PDFExtract();
         const data = await pdfExtract.extract(filePath, {});
-        text = data.pages.map(page => page.content.map(item => item.str).join(" ")).join("\n\n");
+        
+        // Combine all text from all pages
+        text = data.pages
+          .map(page => page.content
+            .map(item => item.str)
+            .join(" "))
+          .join("\n\n");
+        
+        console.log("Successfully extracted text from PDF");
       } catch (error) {
         console.error("PDF extraction error:", error);
-        // If pdf.js-extract fails, use a fallback approach or notify the user
-        text = "Error extracting PDF content. The pdf.js-extract package may not be installed.";
+        throw new Error("Failed to extract text from PDF. Please ensure the PDF is not corrupted and contains extractable text.");
       }
     } else if (fileExtension === ".docx" || fileExtension === ".doc") {
-      // Handle Word document extraction
       try {
         // Dynamically import mammoth
         const mammoth = await import('mammoth');
         const result = await mammoth.default.extractRawText({ path: filePath });
         text = result.value;
+        console.log("Successfully extracted text from Word document");
       } catch (error) {
         console.error("DOCX extraction error:", error);
-        text = "Error extracting Word document content. The mammoth package may not be installed.";
+        throw new Error("Failed to extract text from Word document. Please ensure the file is not corrupted.");
       }
-    } else if (fileExtension === ".rtf") {
-      // For RTF files, try to read as text
+    } else if (fileExtension === ".txt") {
       text = fs.readFileSync(filePath, "utf8");
+      console.log("Successfully read text file");
     } else {
-      // For other files try to read as plain text
-      text = fs.readFileSync(filePath, "utf8");
+      throw new Error(`Unsupported file type: ${fileExtension}`);
     }
 
     // Clean up the file after extraction
-    fs.unlinkSync(filePath);
+    try {
+      fs.unlinkSync(filePath);
+      console.log("Cleaned up temporary file");
+    } catch (error) {
+      console.warn("Failed to clean up temporary file:", error);
+    }
+
+    if (!text.trim()) {
+      throw new Error("No text content could be extracted from the file");
+    }
 
     res.json({ text });
   } catch (error) {
     console.error("Error extracting text:", error);
-    res.status(500).json({ error: "Failed to extract text from file" });
+    res.status(500).json({ 
+      error: "Failed to extract text from file",
+      details: error.message
+    });
   }
 });
 
 // Add endpoint for generating slides
 app.post("/api/generate-slides", async (req, res) => {
   try {
+    console.log("=== Generate Slides Request ===");
+    console.log("Request body:", req.body);
+    
     const { content } = req.body;
     if (!content) {
+      console.log("No content provided in request");
       return res.status(400).json({ error: "Content is required" });
     }
     if (!MAGIC_SLIDES_API_KEY) {
+      console.log("Magic Slides API key is missing");
       return res.status(500).json({ error: "Magic Slides API key is not configured" });
     }
 
     console.log("=== Magic Slides API Request Debug ===");
     console.log("API URL:", MAGIC_SLIDES_API_URL);
     console.log("API Key (first 10 chars):", MAGIC_SLIDES_API_KEY.substring(0, 10) + "...");
+    console.log("Content length:", content.length);
 
     const requestBody = {
       topic: content,
       extraInfoSource: 'Generate comprehensive slides from the provided content',
-      email: 'audreyhuang@g.ucla.edu', // This might need to be configurable
+      email: 'audreyhuang@g.ucla.edu',
       accessId: "c90d2e6e-5d09-496a-af8d-b26521b7c456",
       template: 'bullet-point1',
       language: 'en',
@@ -616,29 +645,82 @@ app.post("/api/generate-slides", async (req, res) => {
     console.log("Headers:", JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2));
 
     const responseText = await response.text();
-    console.log("Response Text:", responseText.substring(0, 1000));
+    console.log("Raw Response Text:", responseText);
 
     if (!response.ok) {
+      console.error("API request failed:", {
+        status: response.status,
+        statusText: response.statusText,
+        responseText: responseText
+      });
       throw new Error(`API request failed with status ${response.status}: ${responseText}`);
     }
 
     let result;
     try {
       result = JSON.parse(responseText);
-      console.log("Parsed response:", JSON.stringify(result, null, 2));
+      console.log("=== Parsed API Response ===");
+      console.log("Full response:", JSON.stringify(result, null, 2));
       
-      // Return both the download URL and preview URL
+      // Check if we have a URL in the response
       if (result.url) {
+        const pdfUrl = result.url.replace('.pptx', '.pdf');
+        console.log('Generated URLs:', {
+          original: result.url,
+          pdf: pdfUrl
+        });
+        
         res.json({ 
           downloadUrl: result.url,
-          previewUrl: result.url.replace('.pptx', '.pdf'), // Assuming the API provides a PDF preview
+          previewUrl: pdfUrl,
+          pdfUrl: pdfUrl,
+          message: "Slides generated successfully"
+        });
+      } else if (result.downloadUrl) {
+        const pdfUrl = result.downloadUrl.replace('.pptx', '.pdf');
+        console.log('Generated URLs from downloadUrl:', {
+          original: result.downloadUrl,
+          pdf: pdfUrl
+        });
+        
+        res.json({ 
+          downloadUrl: result.downloadUrl,
+          previewUrl: pdfUrl,
+          pdfUrl: pdfUrl,
+          message: "Slides generated successfully"
+        });
+      } else if (result.data && result.data.url) {
+        // Some APIs nest the URL in a data object
+        const pdfUrl = result.data.url.replace('.pptx', '.pdf');
+        console.log('Generated URLs from data.url:', {
+          original: result.data.url,
+          pdf: pdfUrl
+        });
+        
+        res.json({ 
+          downloadUrl: result.data.url,
+          previewUrl: pdfUrl,
+          pdfUrl: pdfUrl,
           message: "Slides generated successfully"
         });
       } else {
-        res.json(result);
+        console.log('No URL found in result:', result);
+        // Return the full response for debugging
+        res.json({
+          ...result,
+          message: "Slides generated but no URL returned",
+          error: "No URL found in API response",
+          debug: {
+            hasUrl: !!result.url,
+            hasDownloadUrl: !!result.downloadUrl,
+            hasDataUrl: !!(result.data && result.data.url),
+            responseKeys: Object.keys(result)
+          }
+        });
       }
     } catch (parseError) {
       console.error("Failed to parse API response as JSON:", parseError);
+      console.error("Raw response text:", responseText);
       throw new Error(`Invalid JSON response from API: ${responseText.substring(0, 200)}`);
     }
   } catch (error) {

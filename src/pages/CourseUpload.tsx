@@ -23,6 +23,7 @@ const CourseUpload = () => {
   const [slidesUrl, setSlidesUrl] = useState<string | null>(null);
   const [slidesPreviewUrl, setSlidesPreviewUrl] = useState<string | null>(null);
   const [slidesMessage, setSlidesMessage] = useState<string | null>(null);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   useEffect(() => {
     return () => {
@@ -39,10 +40,33 @@ const CourseUpload = () => {
       
       setErrorMessage(null);
       
-      if (selectedFile.type === 'text/plain') {
-        const text = await selectedFile.text();
-        setFileContent(text);
-      } else {
+      try {
+        if (selectedFile.type === 'text/plain') {
+          const text = await selectedFile.text();
+          setFileContent(text);
+        } else if (selectedFile.type === 'application/pdf') {
+          // For PDF files, we need to extract the text
+          const formData = new FormData();
+          formData.append('file', selectedFile);
+          
+          const response = await fetch('http://localhost:3001/api/extract-text', {
+            method: 'POST',
+            body: formData,
+          });
+          
+          if (!response.ok) {
+            throw new Error('Failed to extract text from PDF');
+          }
+          
+          const data = await response.json();
+          setFileContent(data.text);
+        } else {
+          setFileContent('');
+          setErrorMessage('Unsupported file type. Please upload a PDF or text file.');
+        }
+      } catch (error) {
+        console.error('Error processing file:', error);
+        setErrorMessage('Failed to process file: ' + (error as Error).message);
         setFileContent('');
       }
       
@@ -148,7 +172,9 @@ const CourseUpload = () => {
     setIsGeneratingSlides(true);
     setErrorMessage(null);
     try {
-      console.log('Sending request to generate slides...');
+      console.log('=== Generating Slides ===');
+      console.log('Content length:', fileContent.length);
+      
       const response = await fetch('http://localhost:3001/api/generate-slides', {
         method: 'POST',
         headers: {
@@ -156,21 +182,42 @@ const CourseUpload = () => {
         },
         body: JSON.stringify({ content: fileContent }),
       });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to generate slides');
-      }
-      const data = await response.json();
-      console.log('Received response:', data);
       
-      setSlidesUrl(data.downloadUrl);
-      setSlidesPreviewUrl(data.previewUrl);
-      setSlidesMessage(data.message);
+      console.log('Response status:', response.status);
+      const data = await response.json();
+      console.log('=== Client Response Debug ===');
+      console.log('Full response:', data);
+      
+      if (data.error) {
+        console.error('Error in response:', data.error);
+        console.error('Debug info:', data.debug);
+        throw new Error(data.error + (data.debug ? `\nDebug info: ${JSON.stringify(data.debug, null, 2)}` : ''));
+      }
+      
+      if (!data.downloadUrl && !data.url) {
+        console.error('Missing URLs in response:', data);
+        throw new Error('Failed to get presentation URLs. Response: ' + JSON.stringify(data, null, 2));
+      }
+      
+      // Use either downloadUrl or url
+      const downloadUrl = data.downloadUrl || data.url;
+      const pdfUrl = data.pdfUrl || (downloadUrl ? downloadUrl.replace('.pptx', '.pdf') : null);
+      
+      console.log('Setting URLs:', {
+        downloadUrl,
+        pdfUrl
+      });
+      
+      setSlidesUrl(downloadUrl);
+      setSlidesPreviewUrl(pdfUrl);
+      setSlidesMessage(data.message || 'Slides generated successfully');
+      setPdfUrl(pdfUrl);
       
       console.log('State after update:', {
-        slidesUrl: data.downloadUrl,
-        slidesPreviewUrl: data.previewUrl,
-        slidesMessage: data.message
+        slidesUrl: downloadUrl,
+        slidesPreviewUrl: pdfUrl,
+        slidesMessage: data.message,
+        pdfUrl: pdfUrl
       });
 
       toast({
@@ -333,7 +380,7 @@ const CourseUpload = () => {
               <Button
                 onClick={handleUpload}
                 disabled={!file || isUploading || isGeneratingAudio}
-                className="w-full h-12 bg-black hover:bg-gray-900 text-white rounded-none"
+                className="w-full h-12 bg-gradient-to-r from-gray-900 to-black hover:from-black hover:to-gray-900 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl"
               >
                 {isUploading ? (
                   <>
@@ -356,7 +403,7 @@ const CourseUpload = () => {
               <Button
                 onClick={handleGenerateSlides}
                 disabled={!fileContent || isGeneratingSlides || isUploading || isGeneratingAudio}
-                className="w-full h-12 bg-blue-700 hover:bg-blue-800 text-white rounded-none mt-4"
+                className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl mt-4"
               >
                 {isGeneratingSlides ? (
                   <>
@@ -371,52 +418,23 @@ const CourseUpload = () => {
                 )}
               </Button>
 
-              {/* Debug info */}
-              {process.env.NODE_ENV === 'development' && (
-                <div className="text-xs text-gray-500 mt-2">
-                  <p>Slides URL: {slidesUrl ? 'Present' : 'Not set'}</p>
-                  <p>Preview URL: {slidesPreviewUrl ? 'Present' : 'Not set'}</p>
-                  <p>Message: {slidesMessage || 'No message'}</p>
-                </div>
-              )}
-
-              {/* Slides Preview and Download Section */}
+              {/* Slides Download Section */}
               {slidesUrl && !isGeneratingSlides && (
-                <div className="bg-gray-50 border border-gray-200 p-4 mt-4">
-                  <div className="mb-3">
-                    <p className="text-sm font-medium">Generated Slides</p>
-                    <p className="text-xs text-gray-500 mb-2">{slidesMessage || "Ready to preview and download"}</p>
+                <div className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 p-8 mt-8 rounded-2xl shadow-lg">
+                  <div className="mb-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <Presentation className="h-6 w-6 text-blue-600" />
+                      <p className="text-base font-semibold text-gray-900">Generated Slides</p>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-6">{slidesMessage || "Your slides are ready to download"}</p>
                     
-                    {/* Preview Section */}
-                    {slidesPreviewUrl && (
-                      <div className="mb-4">
-                        <p className="text-sm font-medium mb-2">Preview</p>
-                        <div className="w-full h-[400px] border border-gray-200 rounded overflow-hidden">
-                          <iframe
-                            src={slidesPreviewUrl}
-                            className="w-full h-full"
-                            title="Slides Preview"
-                          />
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Action Buttons */}
-                    <div className="flex justify-end gap-2 mt-4">
-                      <a 
-                        href={slidesUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-4 py-2 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 rounded"
-                      >
-                        <Presentation className="h-4 w-4" />
-                        View Slides
-                      </a>
+                    {/* Action Button */}
+                    <div className="flex justify-end">
                       <button 
                         onClick={handleDownloadSlides}
-                        className="inline-flex items-center gap-1 px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded"
+                        className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl transition-all duration-300 shadow-md hover:shadow-lg"
                       >
-                        <Download className="h-4 w-4" />
+                        <Download className="h-5 w-5" />
                         Download Slides
                       </button>
                     </div>
@@ -426,37 +444,40 @@ const CourseUpload = () => {
 
               {/* Audio Preview Section */}
               {audioBlob && !isGeneratingAudio && (
-                <div className="bg-gray-50 border border-gray-200 p-4">
-                  <div className="mb-3">
-                    <p className="text-sm font-medium">Audio Preview</p>
-                    <p className="text-xs text-gray-500 mb-2">Generated with ElevenLabs</p>
+                <div className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 p-8 mt-8 rounded-2xl shadow-lg">
+                  <div className="mb-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <Upload className="h-6 w-6 text-blue-600" />
+                      <p className="text-base font-semibold text-gray-900">Audio Preview</p>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-6">Generated with ElevenLabs</p>
                     <audio 
                       ref={audioRef} 
                       controls 
-                      className="w-full" 
+                      className="w-full mb-6" 
                       src={audioUrl || undefined}
                     />
-                  </div>
-                  <div className="flex justify-end">
-                    <button 
-                      onClick={handleDownloadAudio}
-                      className="flex items-center gap-1 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded"
-                    >
-                      <Download className="h-4 w-4" />
-                      Download
-                    </button>
+                    <div className="flex justify-end">
+                      <button 
+                        onClick={handleDownloadAudio}
+                        className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg"
+                      >
+                        <Download className="h-5 w-5" />
+                        Download Audio
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
 
               {isGeneratingAudio && (
-                <div className="flex items-center p-4 bg-gray-50 border border-gray-200">
-                  <Loader2 className="mr-3 h-5 w-5 animate-spin text-black" />
+                <div className="flex items-center p-8 bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-2xl shadow-lg mt-8">
+                  <Loader2 className="mr-4 h-6 w-6 animate-spin text-blue-600" />
                   <div className="w-full">
-                    <p className="text-sm font-medium">Generating audio...</p>
-                    <div className="w-full bg-gray-200 h-1 mt-2">
+                    <p className="text-base font-medium text-gray-900 mb-3">Generating audio...</p>
+                    <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
                       <div 
-                        className="bg-black h-1" 
+                        className="bg-gradient-to-r from-blue-600 to-blue-700 h-full transition-all duration-300" 
                         style={{ width: `${audioProgress}%` }}
                       ></div>
                     </div>
