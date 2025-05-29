@@ -14,8 +14,6 @@ const __dirname = path.dirname(__filename);
 
 // Update dotenv config to look in root directory
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
-console.log("API KEY:", process.env.OPENAI_API_KEY);
-console.log("Magic Slides API Key:", process.env.MAGIC_SLIDES_API_KEY ? "Present" : "Missing");
 
 const app = express();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -628,10 +626,17 @@ app.post("/api/generate-slides", async (req, res) => {
       console.log("Parsed response:", JSON.stringify(result, null, 2));
       
       // Return both the download URL and preview URL
-      if (result.url) {
+      if (result.data && result.data.url) {
+        // Handle the case where the URL is nested in data object
+        res.json({ 
+          downloadUrl: result.data.url,
+          previewUrl: result.data.url,
+          message: result.message || "Slides generated successfully"
+        });
+      } else if (result.url) {
         res.json({ 
           downloadUrl: result.url,
-          previewUrl: result.url.replace('.pptx', '.pdf'), // Assuming the API provides a PDF preview
+          previewUrl: result.url, // Use the same URL for both since Magic Slides API might provide a viewable link
           message: "Slides generated successfully"
         });
       } else {
