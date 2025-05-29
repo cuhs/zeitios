@@ -2,8 +2,9 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Loader2, Upload, FileText, AlertCircle, Download } from "lucide-react";
+import { Loader2, Upload, FileText, AlertCircle, Download, Presentation } from "lucide-react";
 import { generateSpeech } from '@/lib/elevenlabs';
+import { useToast } from "@/hooks/use-toast";
 
 const CourseUpload = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -17,6 +18,9 @@ const CourseUpload = () => {
   const [apiKeyMissing, setApiKeyMissing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { toast } = useToast();
+  const [isGeneratingSlides, setIsGeneratingSlides] = useState(false);
+  const [slidesUrl, setSlidesUrl] = useState<string | null>(null);
 
   useEffect(() => {
     return () => {
@@ -129,6 +133,53 @@ const CourseUpload = () => {
     const a = document.createElement('a');
     a.href = audioUrl;
     a.download = `${file?.name || 'course'}_audio.mp3`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  const handleGenerateSlides = async () => {
+    if (!fileContent) {
+      setErrorMessage('No content to generate slides from. Please upload a valid text file.');
+      return;
+    }
+    setIsGeneratingSlides(true);
+    setErrorMessage(null);
+    try {
+      const response = await fetch('http://localhost:3001/api/generate-slides', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ content: fileContent }),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to generate slides');
+      }
+      const data = await response.json();
+      setSlidesUrl(data.downloadUrl || data.url || data.link || null);
+      toast({
+        title: "Slides generated successfully",
+        description: "Your presentation is ready to download.",
+      });
+    } catch (error: any) {
+      setErrorMessage('Failed to generate slides: ' + error.message);
+      toast({
+        title: "Error generating slides",
+        description: error.message || "There was a problem generating your slides.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingSlides(false);
+    }
+  };
+
+  const handleDownloadSlides = () => {
+    if (!slidesUrl) return;
+    const a = document.createElement('a');
+    a.href = slidesUrl;
+    a.download = `${file?.name || 'course'}_slides.pptx`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -286,6 +337,42 @@ const CourseUpload = () => {
                   </>
                 )}
               </Button>
+
+              <Button
+                onClick={handleGenerateSlides}
+                disabled={!fileContent || isGeneratingSlides || isUploading || isGeneratingAudio}
+                className="w-full h-12 bg-blue-700 hover:bg-blue-800 text-white rounded-none mt-4"
+              >
+                {isGeneratingSlides ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Generating Slides...
+                  </>
+                ) : (
+                  <>
+                    <Presentation className="mr-2 h-5 w-5" />
+                    Generate Slides
+                  </>
+                )}
+              </Button>
+
+              {slidesUrl && !isGeneratingSlides && (
+                <div className="bg-gray-50 border border-gray-200 p-4 mt-4">
+                  <div className="mb-3">
+                    <p className="text-sm font-medium">Generated Slides</p>
+                    <p className="text-xs text-gray-500 mb-2">Ready to download</p>
+                    <div className="flex justify-end">
+                      <button 
+                        onClick={handleDownloadSlides}
+                        className="flex items-center gap-1 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded"
+                      >
+                        <Download className="h-4 w-4" />
+                        Download Slides
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </Card>
         </div>
