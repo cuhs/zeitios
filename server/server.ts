@@ -6,13 +6,50 @@ import Exa from "exa-js";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from 'url';
 
-dotenv.config({override: true});
+// Get the directory name in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Update dotenv config to look in root directory
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 console.log("API KEY:", process.env.OPENAI_API_KEY);
+console.log("Magic Slides API Key:", process.env.MAGIC_SLIDES_API_KEY ? "Present" : "Missing");
 
 const app = express();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const exa = new Exa(process.env.EXA_API_KEY);
+
+/**
+ * Magic Slides API Configuration
+ * 
+ * API Endpoint: https://api.magicslides.app/public/api/ppt_from_topic
+ * 
+ * Request Format:
+ * {
+ *   topic: string,              // The content to generate slides from
+ *   extraInfoSource: string,    // Additional context for slide generation
+ *   email: string,              // User's email
+ *   accessId: string,           // Your Magic Slides API key
+ *   template: string,           // Template style (e.g., 'bullet-point1')
+ *   language: string,           // Language code (e.g., 'en')
+ *   slideCount: number,         // Number of slides to generate
+ *   aiImages: boolean,          // Whether to include AI-generated images
+ *   imageForEachSlide: boolean, // Whether to add an image to each slide
+ *   googleImage: boolean,       // Whether to use Google images
+ *   googleText: boolean,        // Whether to use Google text
+ *   model: string,              // AI model to use (e.g., 'gpt-4')
+ *   presentationFor: string     // Target audience
+ * }
+ * 
+ * Response Format:
+ * {
+ *   url: string  // URL to download the generated presentation
+ * }
+ */
+const MAGIC_SLIDES_API_KEY = process.env.MAGIC_SLIDES_API_KEY;
+const MAGIC_SLIDES_API_URL = 'https://api.magicslides.app/public/api/ppt_from_topic';
 
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
@@ -529,6 +566,91 @@ app.post("/api/extract-text", upload.single("file"), async (req: MulterRequest, 
   } catch (error) {
     console.error("Error extracting text:", error);
     res.status(500).json({ error: "Failed to extract text from file" });
+  }
+});
+
+// Add endpoint for generating slides
+app.post("/api/generate-slides", async (req, res) => {
+  try {
+    const { content } = req.body;
+    if (!content) {
+      return res.status(400).json({ error: "Content is required" });
+    }
+    if (!MAGIC_SLIDES_API_KEY) {
+      return res.status(500).json({ error: "Magic Slides API key is not configured" });
+    }
+
+    console.log("=== Magic Slides API Request Debug ===");
+    console.log("API URL:", MAGIC_SLIDES_API_URL);
+    console.log("API Key (first 10 chars):", MAGIC_SLIDES_API_KEY.substring(0, 10) + "...");
+
+    const requestBody = {
+      topic: content,
+      extraInfoSource: 'Generate comprehensive slides from the provided content',
+      email: 'audreyhuang@g.ucla.edu', // This might need to be configurable
+      accessId: "c90d2e6e-5d09-496a-af8d-b26521b7c456",
+      template: 'bullet-point1',
+      language: 'en',
+      slideCount: 10,
+      aiImages: false,
+      imageForEachSlide: true,
+      googleImage: false,
+      googleText: false,
+      model: 'gpt-4',
+      presentationFor: 'general audience'
+    };
+
+    console.log("Request body:", JSON.stringify(requestBody, null, 2));
+
+    const response = await fetch(MAGIC_SLIDES_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    console.log("=== API Response Debug ===");
+    console.log("Status:", response.status);
+    console.log("Status Text:", response.statusText);
+    console.log("Headers:", JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2));
+
+    const responseText = await response.text();
+    console.log("Response Text:", responseText.substring(0, 1000));
+
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}: ${responseText}`);
+    }
+
+    let result;
+    try {
+      result = JSON.parse(responseText);
+      console.log("Parsed response:", JSON.stringify(result, null, 2));
+      
+      // Return both the download URL and preview URL
+      if (result.url) {
+        res.json({ 
+          downloadUrl: result.url,
+          previewUrl: result.url.replace('.pptx', '.pdf'), // Assuming the API provides a PDF preview
+          message: "Slides generated successfully"
+        });
+      } else {
+        res.json(result);
+      }
+    } catch (parseError) {
+      console.error("Failed to parse API response as JSON:", parseError);
+      throw new Error(`Invalid JSON response from API: ${responseText.substring(0, 200)}`);
+    }
+  } catch (error) {
+    console.error("=== Error Details ===");
+    console.error("Error message:", error.message);
+    console.error("Error stack:", error.stack);
+    
+    res.status(500).json({ 
+      error: "Failed to generate slides", 
+      details: error.message,
+      apiUrl: MAGIC_SLIDES_API_URL
+    });
   }
 });
 
